@@ -90,9 +90,9 @@ spec:
           containerPort: 80
         - name: https
           containerPort: 443
-{{ if .Values.controller.customPorts }}
+{{- if .Values.controller.customPorts }}
 {{ toYaml .Values.controller.customPorts | indent 8 }}
-{{ end }}
+{{- end }}
 {{- if .Values.prometheus.create }}
         - name: prometheus
           containerPort: {{ .Values.prometheus.port }}
@@ -164,7 +164,7 @@ spec:
           - -nginx-configmaps=$(POD_NAMESPACE)/{{ include "nginx-ingress.configName" . }}
 {{- if .Values.controller.defaultTLS.secret }}
           - -default-server-tls-secret={{ .Values.controller.defaultTLS.secret }}
-{{ else if and (.Values.controller.defaultTLS.cert) (.Values.controller.defaultTLS.key) }}
+{{- else if and (.Values.controller.defaultTLS.cert) (.Values.controller.defaultTLS.key) }}
           - -default-server-tls-secret=$(POD_NAMESPACE)/{{ include "nginx-ingress.defaultTLSName" . }}
 {{- end }}
           - -ingress-class={{ .Values.controller.ingressClass }}
@@ -195,7 +195,11 @@ spec:
 {{- else if and (.Values.controller.service.create) (eq .Values.controller.service.type "LoadBalancer") }}
           - -external-service={{ include "nginx-ingress.serviceName" . }}
 {{- end }}
+{{- end }}
+{{- if not .Values.controller.reportIngressStatus.enableLeaderElection }}
           - -enable-leader-election={{ .Values.controller.reportIngressStatus.enableLeaderElection }}
+{{- end }}
+{{- if and .Values.controller.reportIngressStatus.enableLeaderElection .Values.controller.reportIngressStatus.leaderElectionLockName }}
           - -leader-election-lock-name={{ include "nginx-ingress.leaderElectionName" . }}
 {{- end }}
 {{- if .Values.controller.wildcardTLS.secret }}
